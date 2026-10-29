@@ -1,10 +1,18 @@
 import random
+from groq import Groq
 import streamlit as st
 
 # Page configuration
 st.set_page_config(
     page_title="Data Structures LMS Quiz Portal", page_icon="📚", layout="centered"
 )
+
+# Initialize Groq client using Streamlit Secrets safely
+# Note: Streamlit Cloud -> Settings -> Secrets mein GROQ_API_KEY="gsk_..." set karna lazmi hai
+try:
+  groq_client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+except Exception:
+  groq_client = None
 
 # 50 Data Structures MCQs extracted from your PDF (Numbering removed from questions)
 MCQS_DATA = [
@@ -624,7 +632,6 @@ if not st.session_state.submitted:
   st.subheader(f"Question {idx + 1} of {total}")
   current_q = mcqs[idx]
 
-  # Clean question text displayed without original file numbering
   st.write(f"**{current_q['question']}**")
 
   prev_ans = st.session_state.user_answers.get(idx, None)
@@ -635,65 +642,3 @@ if not st.session_state.submitted:
           current_q["options"].index(prev_ans)
           if prev_ans in current_q["options"]
           else 0
-      ),
-      key=f"q_{idx}",
-  )
-
-  st.session_state.user_answers[idx] = selected_option
-
-  col1, col2, col3 = st.columns(3)
-
-  with col1:
-    if idx > 0:
-      if st.button("⬅️ Previous"):
-        st.session_state.current_index -= 1
-        st.rerun()
-
-  with col2:
-    if idx < total - 1:
-      if st.button("Next ➡️"):
-        st.session_state.current_index += 1
-        st.rerun()
-
-  with col3:
-    if idx == total - 1:
-      if st.button("✅ Submit Test", type="primary"):
-        st.session_state.submitted = True
-        st.rerun()
-
-else:
-  # Results and Review Page
-  st.header("🎯 Test Result & Detailed Review")
-  mcqs = st.session_state.shuffled_mcqs
-  score = 0
-  total = len(mcqs)
-
-  for i, q in enumerate(mcqs):
-    user_ans = st.session_state.user_answers.get(i, "No Answer")
-    correct_ans = q["answer"]
-
-    is_correct = user_ans == correct_ans
-    if is_correct:
-      score += 1
-
-    st.markdown(f"**Q{i+1}: {q['question']}**")
-    st.write(f"Your Answer: {user_ans}")
-    st.write(f"Correct Answer: {correct_ans}")
-
-    if is_correct:
-      st.success("Status: Correct ✅")
-    else:
-      st.error("Status: Incorrect ❌")
-
-    st.info(f"Reason: {q['reason']}")
-    st.markdown("---")
-
-  st.balloons()
-  st.subheader(f"Final Score: {score} / {total} ({(score/total)*100:.2f}%)")
-
-  if st.button("🔄 Retake Quiz"):
-    st.session_state.submitted = False
-    st.session_state.current_index = 0
-    st.session_state.user_answers = {}
-    random.shuffle(st.session_state.shuffled_mcqs)
-    st.rerun()
