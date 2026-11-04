@@ -1,4 +1,5 @@
 import random
+import time
 from groq import Groq
 import streamlit as st
 
@@ -116,7 +117,10 @@ MCQS_DATA = [
         ),
     },
     {
-        "question": "A grayscale photo can be represented as a matrix in which each number is the",
+        "question": (
+            "A grayscale photo can be represented as a matrix in which each"
+            " number is the"
+        ),
         "options": [
             "Name of the picture",
             "Size of the file",
@@ -328,9 +332,7 @@ MCQS_DATA = [
         "reason": "Tamam variables ki zero value ko trivial solution kehte hain[cite: 45].",
     },
     {
-        "question": (
-            "Every system of linear equations has"
-        ),
+        "question": "Every system of linear equations has",
         "options": [
             "Zero, one, or infinitely many solutions",
             "Exactly two solutions",
@@ -434,8 +436,6 @@ if "shuffled_mcqs" not in st.session_state:
 
 # Timer initialization (30 minutes = 1800 seconds)
 if "start_time" not in st.session_state:
-  import time
-
   st.session_state.start_time = time.time()
 
 # Header Styling & Professional Title
@@ -453,8 +453,6 @@ st.markdown("---")
 
 # Main Quiz Interface
 if not st.session_state.submitted:
-  import time
-
   elapsed_time = int(time.time() - st.session_state.start_time)
   remaining_time = 1800 - elapsed_time
 
@@ -463,13 +461,12 @@ if not st.session_state.submitted:
     st.rerun()
 
   mins, secs = divmod(remaining_time, 60)
-  
+
   # Timer and Submit option row
   col_timer, col_sub = st.columns([2, 1])
   with col_timer:
     st.markdown(
-        f"⏳ **Waqt Baki (Time Remaining):** 
- <span"
+        f"⏳ **Waqt Baki (Time Remaining):** <span"
         f" style='color:red; font-size:20px; font-weight:bold;'>{mins:02d}:{secs:02d}</span>",
         unsafe_allow_html=True,
     )
@@ -515,11 +512,10 @@ if not st.session_state.submitted:
   for i in range(total):
     col_idx = i % 10
     with cols_palette[col_idx]:
-      # Check if answered
-      is_answered = i in st.session_state.user_answers and st.session_state.user_answers[i] is not None
-      btn_type = "primary" if i == idx else "secondary"
-      
-      # Visual styling for solved vs unsolved circles using emojis/labels
+      is_answered = (
+          i in st.session_state.user_answers
+          and st.session_state.user_answers[i] is not None
+      )
       label = f"✅ {i+1}" if is_answered else f"{i+1}"
       if st.button(label, key=f"pal_{i}"):
         st.session_state.current_index = i
@@ -547,72 +543,4 @@ if not st.session_state.submitted:
         st.session_state.submitted = True
         st.rerun()
 
-  # Auto-refresh mechanism for live countdown timer
-  time.sleep(1)
-  st.rerun()
-
-else:
-  # Results and Review Page
-  st.header("🎯 Test Result & Detailed Review")
-  mcqs = st.session_state.shuffled_mcqs
-  score = 0
-  total = len(mcqs)
-
-  for i, q in enumerate(mcqs):
-    user_ans = st.session_state.user_answers.get(i, "No Answer")
-    correct_ans = q["answer"]
-
-    is_correct = user_ans == correct_ans
-    if is_correct:
-      score += 1
-
-    st.markdown(f"**Q{i+1}: {q['question']}**")
-    st.write(f"Your Answer: {user_ans}")
-    st.write(f"Correct Answer: {correct_ans}")
-
-    if is_correct:
-      st.success("Status: Correct ✅")
-    else:
-      st.error("Status: Incorrect ❌")
-
-    st.info(f"Reason: {q['reason']}")
-
-    # Groq AI Tutor Integration Button for each question review
-    if groq_client:
-      if st.button(f"🤖 Ask AI Tutor for Q{i+1}", key=f"ai_btn_{i}"):
-        with st.spinner("AI Tutor is analyzing..."):
-          try:
-            prompt = (
-                f"Question: {q['question']}\nStudent's Answer: {user_ans}\n"
-                f"Correct Answer: {correct_ans}\nExplain in Roman Hinglish"
-                " why the correct answer is right and why student's choice"
-                " might be wrong."
-            )
-            chat_completion = groq_client.chat.completions.create(
-                messages=[{"role": "user", "content": prompt}],
-                model="llama3-70b-8192",
-            )
-            ai_explanation = chat_completion.choices[0].message.content
-            st.success(ai_explanation)
-          except Exception as e:
-            st.error(f"Could not fetch AI response: {e}")
-    else:
-      st.warning(
-          "Groq API key not configured in Streamlit Secrets. Add"
-          " GROQ_API_KEY to enable AI Tutor."
-      )
-
-    st.markdown("---")
-
-  st.balloons()
-  st.subheader(f"Final Score: {score} / {total} ({(score/total)*100:.2f}%)")
-
-  if st.button("🔄 Retake Quiz"):
-    st.session_state.submitted = False
-    st.session_state.current_index = 0
-    st.session_state.user_answers = {}
-    st.session_state.start_time = time.time()
-    random.shuffle(st.session_state.shuffled_mcqs)
-    for q in st.session_state.shuffled_mcqs:
-      random.shuffle(q["options"])
-    st.rerun()
+  time.sleep(
