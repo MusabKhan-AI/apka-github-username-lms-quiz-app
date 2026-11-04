@@ -218,8 +218,7 @@ MCQS_DATA = [
         "options": ["1", "Equal to the trace", "0", "-1"],
         "answer": "0",
         "reason": (
-            "Identical rows honay par determinant hamesha zero hota hai [cite:"
-            " 42]."
+            "Identical rows honay par determinant hamesha zero hota hai[cite: 42]."
         ),
     },
     {
@@ -543,4 +542,71 @@ if not st.session_state.submitted:
         st.session_state.submitted = True
         st.rerun()
 
-  time.sleep(
+  time.sleep(1)
+  st.rerun()
+
+else:
+  # Results and Review Page
+  st.header("🎯 Test Result & Detailed Review")
+  mcqs = st.session_state.shuffled_mcqs
+  score = 0
+  total = len(mcqs)
+
+  for i, q in enumerate(mcqs):
+    user_ans = st.session_state.user_answers.get(i, "No Answer")
+    correct_ans = q["answer"]
+
+    is_correct = user_ans == correct_ans
+    if is_correct:
+      score += 1
+
+    st.markdown(f"**Q{i+1}: {q['question']}**")
+    st.write(f"Your Answer: {user_ans}")
+    st.write(f"Correct Answer: {correct_ans}")
+
+    if is_correct:
+      st.success("Status: Correct ✅")
+    else:
+      st.error("Status: Incorrect ❌")
+
+    st.info(f"Reason: {q['reason']}")
+
+    # Groq AI Tutor Integration Button for each question review
+    if groq_client:
+      if st.button(f"🤖 Ask AI Tutor for Q{i+1}", key=f"ai_btn_{i}"):
+        with st.spinner("AI Tutor is analyzing..."):
+          try:
+            prompt = (
+                f"Question: {q['question']}\nStudent's Answer: {user_ans}\n"
+                f"Correct Answer: {correct_ans}\nExplain in Roman Hinglish"
+                " why the correct answer is right and why student's choice"
+                " might be wrong."
+            )
+            chat_completion = groq_client.chat.completions.create(
+                messages=[{"role": "user", "content": prompt}],
+                model="llama3-70b-8192",
+            )
+            ai_explanation = chat_completion.choices[0].message.content
+            st.success(ai_explanation)
+          except Exception as e:
+            st.error(f"Could not fetch AI response: {e}")
+    else:
+      st.warning(
+          "Groq API key not configured in Streamlit Secrets. Add"
+          " GROQ_API_KEY to enable AI Tutor."
+      )
+
+    st.markdown("---")
+
+  st.balloons()
+  st.subheader(f"Final Score: {score} / {total} ({(score/total)*100:.2f}%)")
+
+  if st.button("🔄 Retake Quiz"):
+    st.session_state.submitted = False
+    st.session_state.current_index = 0
+    st.session_state.user_answers = {}
+    st.session_state.start_time = time.time()
+    random.shuffle(st.session_state.shuffled_mcqs)
+    for q in st.session_state.shuffled_mcqs:
+      random.shuffle(q["options"])
+    st.rerun()
