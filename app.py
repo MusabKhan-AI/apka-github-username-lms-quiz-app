@@ -770,4 +770,208 @@ MCQS_DATA = [
             "Database",
             "Monitor"
         ],
-        "
+        "answer": "Critic",
+        "reason": "Learning agent ke components mein Critic, Learning element, Performance element, aur Problem generator hote hain[cite: 74].",
+    },
+    {
+        "question": "Problem formulation kya hai?",
+        "options": [
+            "Deciding what actions and states to consider given a goal",
+            "Writing python code",
+            "Deploying a model",
+            "Cleaning missing values"
+        ],
+        "answer": "Deciding what actions and states to consider given a goal",
+        "reason": "Problem formulation is the process of deciding what actions and states to consider, given a goal[cite: 37].",
+    }
+]
+
+# --- LOGIN SYSTEM ---
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+
+if not st.session_state.logged_in:
+    st.markdown(
+        "<h2 style='text-align: center;'>🔐 AI & ML Lectures Quiz Login</h2>",
+        unsafe_allow_html=True,
+    )
+    with st.form("login_form"):
+        roll_no = st.text_input("Roll No / Username")
+        password = st.text_input("Password", type="password")
+        submit_login = st.form_submit_button("Login")
+
+        if submit_login:
+            if roll_no == "admin" and password == "admin123":
+                st.session_state.logged_in = True
+                st.rerun()
+            else:
+                st.error("Ghalat Roll No ya Password! Dobara koshish karein.")
+    st.stop()
+
+# Session state initialization for Quiz
+if "submitted" not in st.session_state:
+    st.session_state.submitted = False
+if "current_index" not in st.session_state:
+    st.session_state.current_index = 0
+if "user_answers" not in st.session_state:
+    st.session_state.user_answers = {}
+if "shuffled_mcqs" not in st.session_state:
+    shuffled = list(MCQS_DATA)
+    random.shuffle(shuffled)
+    for q in shuffled:
+        random.shuffle(q["options"])
+    st.session_state.shuffled_mcqs = shuffled
+
+# Header Styling & Professional Title
+st.markdown(
+    "<h1 style='text-align: center; color: #1E3A8A;'>🤖 AI & ML Lectures LMS Portal</h1>",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    "<p style='text-align: center; color: #4B5563;'>Professional Assessment Portal</p>",
+    unsafe_allow_html=True,
+)
+st.markdown("---")
+
+# Main Quiz Interface
+if not st.session_state.submitted:
+    
+    # Submit option row
+    col_info, col_sub = st.columns([2, 1])
+    with col_info:
+        st.markdown("📌 **Instructions:** Sabhi sawalon ke jawab dein aur akhir mein Submit button dabayein.")
+    with col_sub:
+        if st.button("🚀 Submit Test"):
+            st.session_state.submitted = True
+            st.rerun()
+
+    st.markdown("---")
+
+    mcqs = st.session_state.shuffled_mcqs
+    idx = st.session_state.current_index
+    total = len(mcqs)
+
+    st.subheader(f"Question {idx + 1} of {total}")
+    current_q = mcqs[idx]
+
+    st.write(f"**{current_q['question']}**")
+
+    prev_ans = st.session_state.user_answers.get(idx, None)
+
+    try:
+        default_ix = (
+            current_q["options"].index(prev_ans)
+            if prev_ans in current_q["options"]
+            else 0
+        )
+    except ValueError:
+        default_ix = 0
+
+    selected_option = st.radio(
+        "Select your answer:",
+        current_q["options"],
+        index=default_ix,
+        key=f"q_{idx}",
+    )
+
+    st.session_state.user_answers[idx] = selected_option
+
+    # --- QUESTION NAVIGATION PALETTE (CIRCLES) ---
+    st.markdown("### 📌 Question Palette:")
+    cols_palette = st.columns(10)
+    for i in range(total):
+        col_idx = i % 10
+        with cols_palette[col_idx]:
+            is_answered = (
+                i in st.session_state.user_answers
+                and st.session_state.user_answers[i] is not None
+            )
+            label = f"✅ {i+1}" if is_answered else f"{i+1}"
+            if st.button(label, key=f"pal_{i}"):
+                st.session_state.current_index = i
+                st.rerun()
+
+    st.markdown("---")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if idx > 0:
+            if st.button("⬅️ Previous"):
+                st.session_state.current_index -= 1
+                st.rerun()
+
+    with col2:
+        if idx < total - 1:
+            if st.button("Next ➡️"):
+                st.session_state.current_index += 1
+                st.rerun()
+
+    with col3:
+        if idx == total - 1:
+            if st.button("✅ Final Submit", type="primary"):
+                st.session_state.submitted = True
+                st.rerun()
+
+else:
+    # Results and Review Page
+    st.header("🎯 Test Result & Detailed Review")
+    mcqs = st.session_state.shuffled_mcqs
+    score = 0
+    total = len(mcqs)
+
+    for i, q in enumerate(mcqs):
+        user_ans = st.session_state.user_answers.get(i, "No Answer")
+        correct_ans = q["answer"]
+
+        is_correct = user_ans == correct_ans
+        if is_correct:
+            score += 1
+
+        st.markdown(f"**Q{i+1}: {q['question']}**")
+        st.write(f"Your Answer: {user_ans}")
+        st.write(f"Correct Answer: {correct_ans}")
+
+        if is_correct:
+            st.success("Status: Correct ✅")
+        else:
+            st.error("Status: Incorrect ❌")
+
+        st.info(f"Reason: {q['reason']}")
+
+        # Groq AI Tutor Integration Button for each question review
+        if groq_client:
+            if st.button(f"🤖 Ask AI Tutor for Q{i+1}", key=f"ai_btn_{i}"):
+                with st.spinner("AI Tutor is analyzing..."):
+                    try:
+                        prompt = (
+                            f"Question: {q['question']}\nStudent's Answer: {user_ans}\n"
+                            f"Correct Answer: {correct_ans}\nExplain in Roman Hinglish "
+                            "why the correct answer is right and why student's choice might be wrong."
+                        )
+                        chat_completion = groq_client.chat.completions.create(
+                            messages=[{"role": "user", "content": prompt}],
+                            model="llama3-70b-8192",
+                        )
+                        ai_explanation = chat_completion.choices[0].message.content
+                        st.success(ai_explanation)
+                    except Exception as e:
+                        st.error(f"Could not fetch AI response: {e}")
+        else:
+            st.warning(
+                "Groq API key not configured in Streamlit Secrets."
+            )
+
+        st.markdown("---")
+
+    st.balloons()
+    st.subheader(f"Final Score: {score} / {total} ({(score/total)*100:.2f}%)")
+
+    if st.button("🔄 Retake Quiz"):
+        st.session_state.submitted = False
+        st.session_state.current_index = 0
+        st.session_state.user_answers = {}
+        random.shuffle(st.session_state.shuffled_mcqs)
+        for q in st.session_state.shuffled_mcqs:
+            random.shuffle(q["options"])
+        st.rerun()
