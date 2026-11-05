@@ -1,11 +1,10 @@
 import random
-import time
 from groq import Groq
 import streamlit as st
 
 # Page configuration
 st.set_page_config(
-    page_title="Linear Algebra Pre-Board LMS Quiz Portal",
+    page_title="AI & ML LMS Quiz Portal",
     page_icon="📚",
     layout="centered",
 )
@@ -16,383 +15,232 @@ try:
 except Exception:
   groq_client = None
 
-# 30 Mixed MCQs selected from the Linear Algebra PDF (Part 1 to Part 6)
+# MCQs Data based on provided AI and ML Lectures / Slides
 MCQS_DATA = [
     {
-        "question": "A matrix with 3 rows and 2 columns has size",
-        "options": ["2 x 3", "3 x 3", "3 x 2", "6 x 1"],
-        "answer": "3 x 2",
+        "question": "Who coined the term 'Machine Learning' in 1959?",
+        "options": ["John McCarthy", "Arthur Samuel", "Alan Turing", "Tom Mitchell"],
+        "answer": "Arthur Samuel",
         "reason": (
-            "Matrix ka size rows x columns hota hai, is liye 3 rows aur 2"
-            " columns ke liye size 3 x 2 hai[cite: 33]."
+            "Arthur Samuel ne 1959 ma 'Machine Learning' term coin kari hati"
+            "[cite: 10]."
         ),
     },
     {
         "question": (
-            "A square matrix that is both upper and lower triangular must be"
+            "What is the first step of the Machine Learning life cycle?"
         ),
         "options": [
-            "A matrix with no zeros",
-            "A diagonal matrix",
-            "A 1 x n matrix",
-            "A non-square matrix",
+            "Data Preparation",
+            "Gathering Data",
+            "Data Wrangling",
+            "Train Model",
         ],
-        "answer": "A diagonal matrix",
+        "answer": "Gathering Data",
         "reason": (
-            "Jab matrix upper aur lower triangular dono ho toh main diagonal ke"
-            " ilawa baqi sab entries zero hoti hain, jo ke diagonal matrix ki"
-            " definition hai[cite: 36]."
-        ),
-    },
-    {
-        "question": "The transpose of a matrix is obtained by",
-        "options": [
-            "Interchanging its rows and columns",
-            "Adding 1 to every entry",
-            "Multiplying every entry by -1",
-            "Deleting its diagonal",
-        ],
-        "answer": "Interchanging its rows and columns",
-        "reason": (
-            "Transpose nikalne ke liye matrix ki rows aur columns ko aapas mein"
-            " interchange kiya jata hai[cite: 36]."
-        ),
-    },
-    {
-        "question": "A matrix A is symmetric if",
-        "options": ["A^T = -A", "A^2 = I", "A^2 = A", "A^T = A"],
-        "answer": "A^T = A",
-        "reason": (
-            "Symmetric matrix woh hoti hai jiska transpose uske apne barabar"
-            " ho (A^T = A)[cite: 36]."
-        ),
-    },
-    {
-        "question": "The trace of a square matrix is the",
-        "options": [
-            "Product of the diagonal entries",
-            "Sum of all the entries",
-            "Difference of the two rows",
-            "Sum of the main diagonal entries",
-        ],
-        "answer": "Sum of the main diagonal entries",
-        "reason": (
-            "Trace main diagonal ki tamam entries ke sum ke barabar hota hai"
-            "[cite: 36]."
-        ),
-    },
-    {
-        "question": "A square matrix A is involutory if",
-        "options": ["A^2 = A", "A^2 = O", "A^2 = I", "A^T = -A"],
-        "answer": "A^2 = I",
-        "reason": (
-            "Involutory matrix woh hoti hai jiska square identity matrix (I)"
-            " ke barabar ho[cite: 37]."
-        ),
-    },
-    {
-        "question": "The product AB is defined only when",
-        "options": [
-            "Rows of A = rows of B",
-            "Columns of A = columns of B",
-            "Columns of A = rows of B",
-            "A and B are both square",
-        ],
-        "answer": "Columns of A = rows of B",
-        "reason": (
-            "Matrix multiplication ke liye pehli matrix ke columns doosri matrix"
-            " ki rows ke equal honay chahiye[cite: 38]."
+            "ML life cycle no pehlo step data gather karvo chhe[cite: 2]."
         ),
     },
     {
         "question": (
-            "In AI, a dataset is usually stored as a matrix in which each"
-            " column represents a"
+            "Which step involves cleaning and converting raw data into a"
+            " usable format?"
         ),
-        "options": ["Determinant", "Transpose", "Scalar", "Feature"],
-        "answer": "Feature",
+        "options": [
+            "Data Wrangling",
+            "Deployment",
+            "Testing",
+            "Model Training",
+        ],
+        "answer": "Data Wrangling",
         "reason": (
-            "AI datasets mein columns features ko aur rows data points ko"
-            " represent karte hain[cite: 39]."
+            "Data wrangling ma raw data ne clean ane usable format ma convert"
+            " karva ma aave chhe[cite: 4]."
         ),
     },
     {
         "question": (
-            "A grayscale photo can be represented as a matrix in which each"
-            " number is the"
+            "In PEAS description for an automated taxi, what do the sensors"
+            " include?"
         ),
         "options": [
-            "Name of the picture",
-            "Size of the file",
-            "Width of the screen",
-            "Brightness of one pixel",
+            "Steering & brakes",
+            "Accelerators",
+            "Camera, GPS, IR sensors",
+            "Display screen",
         ],
-        "answer": "Brightness of one pixel",
+        "answer": "Camera, GPS, IR sensors",
         "reason": (
-            "Grayscale image matrix mein har number ek pixel ki brightness ya"
-            " intensity ko zahir karta hai[cite: 39]."
-        ),
-    },
-    {
-        "question": "The transpose of a product (AB)^T equals",
-        "options": ["A^T B^T", "B^T A^T", "AB", "BA"],
-        "answer": "B^T A^T",
-        "reason": (
-            "Product ka transpose reverse order mein hota hai, yani (AB)^T ="
-            " B^T A^T[cite: 39]."
-        ),
-    },
-    {
-        "question": "The determinant of a square matrix is",
-        "options": [
-            "Another matrix",
-            "A row vector",
-            "A single number",
-            "A column vector",
-        ],
-        "answer": "A single number",
-        "reason": (
-            "Square matrix ka determinant hamesha ek single scalar value (number)"
-            " hota hai[cite: 39]."
-        ),
-    },
-    {
-        "question": "If det(A) = 0, then the matrix A is",
-        "options": [
-            "Invertible",
-            "The identity matrix",
-            "Always symmetric",
-            "Singular (no inverse)",
-        ],
-        "answer": "Singular (no inverse)",
-        "reason": (
-            "Agar determinant zero ho toh matrix ko singular kehte hain aur uska"
-            " inverse exist nahi karta[cite: 40]."
-        ),
-    },
-    {
-        "question": "The cofactor of entry a_ij is given by",
-        "options": [
-            "C_ij = (-1)^(i+j) M_ij",
-            "C_ij = M_ij + 1",
-            "C_ij = (-1)^(ij) M_ij",
-            "C_ij = i * j * M_ij",
-        ],
-        "answer": "C_ij = (-1)^(i+j) M_ij",
-        "reason": (
-            "Cofactor ka formula (-1^(i+j)) multiplied by minor (M_ij) hota hai"
-            "[cite: 41]."
+            "Automated taxi ma camera, GPS ane IR sensors sensors ma aave chhe"
+            "[cite: 32]."
         ),
     },
     {
         "question": (
-            "If every entry of a row of a square matrix is zero, then its"
-            " determinant is"
+            "Which type of agent selects actions that maximize expected"
+            " utility?"
         ),
-        "options": ["0", "1", "-1", "Undefined"],
-        "answer": "0",
+        "options": [
+            "Simple Reflex Agent",
+            "Utility-based Agent",
+            "Goal-based Agent",
+            "Learning Agent",
+        ],
+        "answer": "Utility-based Agent",
         "reason": (
-            "Agar kisi matrix ki koi poori row zero ho toh uska determinant zero"
-            " hota hai[cite: 42]."
+            "Utility-based agent performance measure ne maximize karva mate"
+            " utility use kare chhe[cite: 68]."
         ),
     },
     {
         "question": (
-            "If any two rows of a square matrix are interchanged, the"
-            " determinant"
+            "How many major steps are involved in the Machine Learning life"
+            " cycle?"
         ),
+        "options": ["5", "6", "7", "8"],
+        "answer": "7",
+        "reason": (
+            "Machine learning life cycle ma 7 major steps hoy chhe[cite: 2]."
+        ),
+    },
+    {
+        "question": "Machine Learning is a subset of which broader field?",
         "options": [
-            "Changes its sign",
-            "Stays the same",
-            "Becomes zero",
-            "Doubles",
+            "Data Science",
+            "Artificial Intelligence",
+            "Computer Vision",
+            "Robotics",
         ],
-        "answer": "Changes its sign",
+        "answer": "Artificial Intelligence",
         "reason": (
-            "Do rows aapas mein interchange karne se determinant ka sign change"
-            " ho jata hai[cite: 42]."
-        ),
-    },
-    {
-        "question": "If two rows of a square matrix are identical, its determinant is",
-        "options": ["1", "Equal to the trace", "0", "-1"],
-        "answer": "0",
-        "reason": (
-            "Identical rows honay par determinant hamesha zero hota hai[cite: 42]."
-        ),
-    },
-    {
-        "question": "An inverse of a 2x2 matrix exists only if",
-        "options": ["det = 0", "det = 1 only", "det != 0", "The matrix is symmetric"],
-        "answer": "det != 0",
-        "reason": (
-            "Inverse tabhi mumkin hai jab determinant non-zero ho[cite: 43]."
-        ),
-    },
-    {
-        "question": "The matrix [[3, 6], [1, 2]] has no inverse because",
-        "options": [
-            "Its determinant is 1",
-            "Its determinant is 0",
-            "It is not square",
-            "It has a negative entry",
-        ],
-        "answer": "Its determinant is 0",
-        "reason": (
-            "Is matrix ka determinant (3*2 - 6*1 = 0) hai, is liye inverse"
-            " exist nahi karta[cite: 43]."
-        ),
-    },
-    {
-        "question": "A simple fix for duplicate (repeated) features is to",
-        "options": [
-            "Remove one of the repeated features",
-            "Multiply the data by zero",
-            "Add more duplicates",
-            "Take the transpose",
-        ],
-        "answer": "Remove one of the repeated features",
-        "reason": (
-            "Multicollinearity se bachne ke liye duplicate feature ko remove kar"
-            " diya jata hai[cite: 44]."
+            "Machine learning e Artificial Intelligence (AI) no subset chhe"
+            "[cite: 10, 31]."
         ),
     },
     {
         "question": (
-            "The matrix [[-1, 0], [0, 1]] has det -1, which means the image is"
+            "Which data type consists of input data without labeled"
+            " responses?"
         ),
         "options": [
-            "Stretched 6 times",
-            "Squashed into a line",
-            "Destroyed",
-            "Flipped (mirror image) with the same area",
+            "Supervised data",
+            "Unlabeled data",
+            "Labeled data",
+            "Test data",
         ],
-        "answer": "Flipped (mirror image) with the same area",
+        "answer": "Unlabeled data",
         "reason": (
-            "Negative determinant reflection (mirror image) ko zahir karta hai"
-            "[cite: 44]."
+            "Unlabeled data ma target responses ya labels hotah nathi[cite: 22]."
         ),
     },
     {
         "question": (
-            "A matrix like [[1, 2], [2, 4]] has det 0, so the image is"
+            "What does PEAS stand for in task environment specification?"
         ),
         "options": [
-            "Doubled in area",
-            "Rotated only",
-            "Flipped only",
-            "Squashed flat into a line",
+            "Performance, Environment, Actuators, Sensors",
+            "Program, Execution, Action, State",
+            "Prediction, Evaluation, Analysis, System",
+            "Processing, Environment, Algorithm, Search",
         ],
-        "answer": "Squashed flat into a line",
+        "answer": "Performance, Environment, Actuators, Sensors",
         "reason": (
-            "Determinant zero honay ka matlab hai ke 2D space flat ho kar line"
-            " ban gayi hai[cite: 44]."
+            "PEAS stands for Performance measure, Environment, Actuators,"
+            " Sensors[cite: 32]."
         ),
     },
     {
         "question": (
-            "A system of linear equations written as AX = 0 is called a"
+            "Which environment type has an agent's sensors give complete"
+            " state access at each point in time?"
         ),
         "options": [
-            "Non-homogeneous system",
-            "Homogeneous system",
-            "Quadratic system",
-            "Singular matrix",
+            "Partially Observable",
+            "Fully Observable",
+            "Stochastic",
+            "Dynamic",
         ],
-        "answer": "Homogeneous system",
+        "answer": "Fully Observable",
         "reason": (
-            "Jab right side zero vector ho toh usay homogeneous system kehte"
-            " hain[cite: 44]."
-        ),
-    },
-    {
-        "question": "Every homogeneous system of linear equations always has",
-        "options": [
-            "No solution",
-            "Exactly two solutions",
-            "At least the trivial solution",
-            "Only nontrivial solutions",
-        ],
-        "answer": "At least the trivial solution",
-        "reason": (
-            "Homogeneous system ka zero solution (trivial solution) hamesha exist"
-            " karta hai[cite: 44]."
-        ),
-    },
-    {
-        "question": "The solution x_1 = x_2 = ... = x_n = 0 is called the",
-        "options": [
-            "Nontrivial solution",
-            "Unique minor",
-            "Trivial solution",
-            "Augmented solution",
-        ],
-        "answer": "Trivial solution",
-        "reason": "Tamam variables ki zero value ko trivial solution kehte hain[cite: 45].",
-    },
-    {
-        "question": "Every system of linear equations has",
-        "options": [
-            "Zero, one, or infinitely many solutions",
-            "Exactly two solutions",
-            "Exactly one solution always",
-            "At most three solutions",
-        ],
-        "answer": "Zero, one, or infinitely many solutions",
-        "reason": (
-            "Linear systems ke ya toh no solution, unique solution, ya infinite"
-            " solutions hotay hain[cite: 45]."
+            "Fully observable environment ma sensors complete state access"
+            " aape chhe[cite: 33]."
         ),
     },
     {
         "question": (
-            "If two lines in a plane are parallel (and distinct), the system has"
+            "In a decision tree or classification task, each episode is"
+            " independent of previous actions in a(n)..."
         ),
         "options": [
-            "One solution",
-            "Two solutions",
-            "Infinitely many solutions",
-            "No solution",
+            "Sequential environment",
+            "Episodic environment",
+            "Static environment",
+            "Continuous environment",
         ],
-        "answer": "No solution",
+        "answer": "Episodic environment",
         "reason": (
-            "Parallel lines aapas mein kahin intersect nahi karti, is liye koi"
-            " solution nahi hota[cite: 45]."
+            "Episodic environment ma next episode paila na actions par depend"
+            " nathi kartu[cite: 33]."
         ),
     },
     {
-        "question": "The determinant of [[1, 2], [3, 4]] is",
-        "options": ["2", "10", "-10", "-2"],
-        "answer": "-2",
-        "reason": "(1*4) - (2*3) = 4 - 6 = -2[cite: 40].",
-    },
-    {
-        "question": "The determinant of the identity matrix I_2 is",
-        "options": ["0", "1", "2", "-1"],
-        "answer": "1",
-        "reason": "Identity matrix ka determinant hamesha 1 hota hai[cite: 40].",
-    },
-    {
-        "question": "If A is a 2x4 matrix, then A^T has order",
-        "options": ["2 x 4", "4 x 4", "2 x 2", "4 x 2"],
-        "answer": "4 x 2",
+        "question": (
+            "Which agent component tells the learning element how well the"
+            " agent is doing?"
+        ),
+        "options": ["Critic", "Problem Generator", "Actuator", "Sensor"],
+        "answer": "Critic",
         "reason": (
-            "Transpose lene se rows aur columns ki tadad ulat jati hai, is liye"
-            " 4 x 2 ban jayega[cite: 36]."
+            "Learning agent ma Critic performance standard mujab feedback aape"
+            " chhe[cite: 74]."
         ),
     },
     {
-        "question": "Every identity matrix is also a",
+        "question": "The 8-puzzle is a classic example of a problem solved in:",
         "options": [
-            "Null matrix",
-            "Scalar matrix",
-            "Skew-symmetric matrix",
-            "Row matrix",
+            "Problem Formulation and Search",
+            "Unsupervised Learning",
+            "Reinforcement Learning",
+            "Neural Networks",
         ],
-        "answer": "Scalar matrix",
+        "answer": "Problem Formulation and Search",
         "reason": (
-            "Identity matrix ek aisi scalar matrix hoti hai jismein diagonal"
-            " elements 1 hotay hain[cite: 35]."
+            "8-puzzle e problem formulation and search agents no example chhe"
+            "[cite: 34, 50]."
+        ),
+    },
+    {
+        "question": (
+            "What type of learning involves an agent discovering actions that"
+            " yield the most reward?"
+        ),
+        "options": [
+            "Supervised Learning",
+            "Unsupervised Learning",
+            "Reinforcement Learning",
+            "Semi-Supervised Learning",
+        ],
+        "answer": "Reinforcement Learning",
+        "reason": (
+            "Reinforcement learning ma agent rewards and punishments thi"
+            " learn kare chhe[cite: 23]."
+        ),
+    },
+    {
+        "question": (
+            "Which properties of data refer to the scale and rate of data"
+            " streaming respectively?"
+        ),
+        "options": [
+            "Volume and Velocity",
+            "Variety and Veracity",
+            "Value and Viability",
+            "Integrity and Security",
+        ],
+        "answer": "Volume and Velocity",
+        "reason": (
+            "Volume scale of data chhe ane Velocity rate of data streaming"
+            " chhe[cite: 28]."
         ),
     },
 ]
@@ -403,7 +251,7 @@ if "logged_in" not in st.session_state:
 
 if not st.session_state.logged_in:
   st.markdown(
-      "<h2 style='text-align: center;'>🔐 Linear Algebra Pre-Board Login</h2>",
+      "<h2 style='text-align: center;'>🔐 AI & ML Portal Login</h2>",
       unsafe_allow_html=True,
   )
   with st.form("login_form"):
@@ -433,42 +281,24 @@ if "shuffled_mcqs" not in st.session_state:
     random.shuffle(q["options"])
   st.session_state.shuffled_mcqs = shuffled
 
-# Timer initialization (30 minutes = 1800 seconds)
-if "start_time" not in st.session_state:
-  st.session_state.start_time = time.time()
-
 # Header Styling & Professional Title
 st.markdown(
-    "<h1 style='text-align: center; color: #1E3A8A;'>📐 Linear Algebra Pre-Board"
+    "<h1 style='text-align: center; color: #1E3A8A;'>🤖 AI & Machine Learning"
     " LMS Portal</h1>",
     unsafe_allow_html=True,
 )
 st.markdown(
-    "<p style='text-align: center; color: #4B5563;'>Professional NTS / ECAT"
-    " Style Assessment</p>",
+    "<p style='text-align: center; color: #4B5563;'>Professional Assessment"
+    " Portal</p>",
     unsafe_allow_html=True,
 )
 st.markdown("---")
 
-# Main Quiz Interface
+# Main Quiz Interface (Timer removed)
 if not st.session_state.submitted:
-  elapsed_time = int(time.time() - st.session_state.start_time)
-  remaining_time = 1800 - elapsed_time
-
-  if remaining_time <= 0:
-    st.session_state.submitted = True
-    st.rerun()
-
-  mins, secs = divmod(remaining_time, 60)
-
-  # Timer and Submit option row
-  col_timer, col_sub = st.columns([2, 1])
-  with col_timer:
-    st.markdown(
-        f"⏳ **Waqt Baki (Time Remaining):** <span"
-        f" style='color:red; font-size:20px; font-weight:bold;'>{mins:02d}:{secs:02d}</span>",
-        unsafe_allow_html=True,
-    )
+  col_title, col_sub = st.columns([2, 1])
+  with col_title:
+    st.markdown("📝 **Quiz in Progress (No Time Limit)**")
   with col_sub:
     if st.button("🚀 Early Submit Test"):
       st.session_state.submitted = True
@@ -505,7 +335,7 @@ if not st.session_state.submitted:
 
   st.session_state.user_answers[idx] = selected_option
 
-  # --- NTS STYLE QUESTION NAVIGATION PALETTE (CIRCLES) ---
+  # --- QUESTION NAVIGATION PALETTE (CIRCLES) ---
   st.markdown("### 📌 Question Palette:")
   cols_palette = st.columns(10)
   for i in range(total):
@@ -542,9 +372,6 @@ if not st.session_state.submitted:
         st.session_state.submitted = True
         st.rerun()
 
-  time.sleep(1)
-  st.rerun()
-
 else:
   # Results and Review Page
   st.header("🎯 Test Result & Detailed Review")
@@ -578,9 +405,8 @@ else:
           try:
             prompt = (
                 f"Question: {q['question']}\nStudent's Answer: {user_ans}\n"
-                f"Correct Answer: {correct_ans}\nExplain in Roman Hinglish"
-                " why the correct answer is right and why student's choice"
-                " might be wrong."
+                f"Correct Answer: {correct_ans}\nExplain why the correct"
+                " answer is right and why student's choice might be wrong."
             )
             chat_completion = groq_client.chat.completions.create(
                 messages=[{"role": "user", "content": prompt}],
@@ -591,10 +417,7 @@ else:
           except Exception as e:
             st.error(f"Could not fetch AI response: {e}")
     else:
-      st.warning(
-          "Groq API key not configured in Streamlit Secrets. Add"
-          " GROQ_API_KEY to enable AI Tutor."
-      )
+      st.warning("Groq API key not configured in Streamlit Secrets.")
 
     st.markdown("---")
 
@@ -605,7 +428,6 @@ else:
     st.session_state.submitted = False
     st.session_state.current_index = 0
     st.session_state.user_answers = {}
-    st.session_state.start_time = time.time()
     random.shuffle(st.session_state.shuffled_mcqs)
     for q in st.session_state.shuffled_mcqs:
       random.shuffle(q["options"])
